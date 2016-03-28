@@ -9,7 +9,8 @@
 import Foundation
 import CoreData
 
-// TODO: rcedwards These will be replaced with Box/Either or something native to Swift (fingers crossed) https://github.com/bignerdranch/CoreDataStack/issues/10
+// PEM - removing "to-do" marker to avoid build warning
+// to-do: rcedwards These will be replaced with Box/Either or something native to Swift (fingers crossed) https://github.com/bignerdranch/CoreDataStack/issues/10
 
 // MARK: - Operation Result Types
 
@@ -190,10 +191,17 @@ public final class CoreDataStack {
         self.persistentStoreCoordinator = persistentStoreCoordinator
         privateQueueContext.persistentStoreCoordinator = persistentStoreCoordinator
 
-        NSNotificationCenter.defaultCenter().addObserver(self,
-            selector: "stackMemberContextDidSaveNotification:",
-            name: NSManagedObjectContextDidSaveNotification,
-            object: mainQueueContext)
+        #if swift(>=2.2)
+            NSNotificationCenter.defaultCenter().addObserver(self,
+                                                             selector: #selector(CoreDataStack.stackMemberContextDidSaveNotification(_:)),
+                                                             name: NSManagedObjectContextDidSaveNotification,
+                                                             object: mainQueueContext)
+        #else
+            NSNotificationCenter.defaultCenter().addObserver(self,
+                selector: "stackMemberContextDidSaveNotification:",
+                name: NSManagedObjectContextDidSaveNotification,
+                object: mainQueueContext)
+        #endif
     }
 
     deinit {
@@ -287,10 +295,17 @@ public extension CoreDataStack {
         moc.parentContext = self.mainQueueContext
         moc.name = "Background Worker Context"
 
+        #if swift(>=2.2)
+        NSNotificationCenter.defaultCenter().addObserver(self,
+            selector: #selector(CoreDataStack.stackMemberContextDidSaveNotification(_:)),
+            name: NSManagedObjectContextDidSaveNotification,
+            object: moc)
+        #else
         NSNotificationCenter.defaultCenter().addObserver(self,
             selector: "stackMemberContextDidSaveNotification:",
             name: NSManagedObjectContextDidSaveNotification,
             object: moc)
+        #endif
 
         return moc
     }
